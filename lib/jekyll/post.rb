@@ -8,7 +8,7 @@ module Jekyll
       attr_accessor :lsi
     end
 
-    MATCHER = /^(.+\/)*(\d+-\d+-\d+)-(.*)(\.[^.]+)$/
+    MATCHER = /^(.+\/)*(\d+-\d+-\d+-)*(.*)(\.[^.]+)$/
 
     # Post name validator. Post filenames must be like:
     #   2008-11-05-my-awesome-post.textile
@@ -42,7 +42,7 @@ module Jekyll
       #Means we'll sort correctly.
       if self.data.has_key?('date')
         # ensure Time via to_s and reparse
-        self.date = Time.parse(self.data["date"].to_s)
+        self.date = Time.parse(self.data["date"].to_s.gsub(/-$/,""))
       end
 
       if self.data.has_key?('published') && self.data['published'] == false
@@ -62,7 +62,11 @@ module Jekyll
     #
     # Returns -1, 0, 1
     def <=>(other)
-      cmp = self.date <=> other.date
+      if self.date && other.date
+        cmp = self.date <=> other.date
+      else
+        cmp = self.slug <=> other.slug
+      end
       if 0 == cmp
        cmp = self.slug <=> other.slug
       end
@@ -75,7 +79,7 @@ module Jekyll
     # Returns nothing
     def process(name)
       m, cats, date, slug, ext = *name.match(MATCHER)
-      self.date = Time.parse(date)
+      self.date = Time.parse(date) if date
       self.slug = slug
       self.ext = ext
     end
@@ -120,12 +124,12 @@ module Jekyll
       return permalink if permalink
 
       @url ||= {
-        "year"       => date.strftime("%Y"),
-        "month"      => date.strftime("%m"),
-        "day"        => date.strftime("%d"),
+        "year"       => (date ? date.strftime("%Y") : nil).to_s,
+        "month"      => (date ? date.strftime("%m") : nil).to_s,
+        "day"        => (date ? date.strftime("%d") : nil).to_s,
         "title"      => CGI.escape(slug),
-        "i_day"      => date.strftime("%d").to_i.to_s,
-        "i_month"    => date.strftime("%m").to_i.to_s,
+        "i_day"      => (date ? date.strftime("%d").to_i.to_s : nil).to_s,
+        "i_month"    => (date ? date.strftime("%m").to_i.to_s : nil).to_s,
         "categories" => categories.join('/'),
         "output_ext" => self.output_ext
       }.inject(template) { |result, token|
