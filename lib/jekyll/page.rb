@@ -22,6 +22,7 @@ module Jekyll
 
       self.process(name)
       self.read_yaml(File.join(base, dir), name)
+      self.data['layout'] ||= 'page'
     end
 
     # The generated directory into which the page will be placed

@@ -37,6 +37,7 @@ module Jekyll
       self.categories = @name.split('/').tap{|o| o.pop}.reject { |x| x.empty? }
       self.process(name)
       self.read_yaml(@base, name)
+      self.data['layout'] ||= 'post'
 
       #If we've added a date and time to the yaml, use that instead of the filename date
       #Means we'll sort correctly.
